@@ -1,0 +1,17 @@
+{
+  "name": "lore-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Game meta AI recommendation engine using RAG + MCP architecture",
+  "scripts": {
+    "dev": "docker compose -f docker/compose.dev.yml up",
+    "down": "docker compose -f docker/compose.dev.yml down",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "eval": "pnpm --filter harness eval"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

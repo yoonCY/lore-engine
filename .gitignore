@@ -1,0 +1,26 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+
+# pnpm
+.pnpm-store/
+
+# Build artifacts
+packages/*/dist/
+packages/*/build/
+
+# Evaluation results (대용량 → K:/ 보관)
+packages/harness/results/
+packages/harness/.promptfoo/
+
+# Data dumps (K:/ 보관)
+packages/data-pipeline/dumps/
+packages/data-pipeline/raw/
+
+# Docker volumes
+docker/volumes/
