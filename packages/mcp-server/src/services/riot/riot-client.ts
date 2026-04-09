@@ -156,4 +156,11 @@ export class RiotClient {
   public async getMatchDetails(matchId: string) {
     return this.get<any>(`/lol/match/v5/matches/${matchId}`, undefined, 'https://asia.api.riotgames.com');
   }
+
+  /**
+   * 매치 타임라인 데이터 가져오기 (스킬 트리, 아이템 빌드 순서용) - /lol/match/v5/matches/{matchId}/timeline
+   */
+  public async getMatchTimeline(matchId: string) {
+    return this.get<any>(`/lol/match/v5/matches/${matchId}/timeline`, undefined, 'https://asia.api.riotgames.com');
+  }
 }

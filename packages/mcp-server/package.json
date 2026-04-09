@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "bullmq": "^5.73.3",
+    "ioredis": "^5.10.1",
     "neo4j-driver": "^5.28.3"
   },
   "devDependencies": {

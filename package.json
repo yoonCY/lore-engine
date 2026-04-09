@@ -1,17 +1,21 @@
 {
   "name": "lore-engine",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Game meta AI recommendation engine using RAG + MCP architecture",
+  "description": "Multi-game AI recommendation engine using RAG + MCP architecture (LoL, MapleStory, FC Online, TFD)",
   "scripts": {
     "dev": "docker compose -f docker/compose.dev.yml up",
     "down": "docker compose -f docker/compose.dev.yml down",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
-    "eval": "pnpm --filter harness eval"
+    "eval": "pnpm --filter harness eval",
+    "worker:riot": "tsx packages/mcp-server/src/workers/riot-worker.ts",
+    "worker:nexon": "tsx packages/mcp-server/src/workers/nexon-worker.ts",
+    "seed:queue": "tsx packages/mcp-server/scripts/enqueue-challenger.ts"
   },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   }
 }
+
