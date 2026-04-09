@@ -1,0 +1,130 @@
+# ═══════════════════════════════════════════════════════════
+#  lore-engine — Docker Compose (Development)
+#  모든 서비스는 내부 bridge 네트워크(lore-net)에서만 통신
+# ═══════════════════════════════════════════════════════════
+
+services:
+  # ─── Neo4j (Graph DB: 챔피언-아이템-스킬 관계 그래프) ─────────
+  neo4j:
+    image: neo4j:5.18-community
+    container_name: lore-neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474"   # Browser UI
+      - "7687:7687"   # Bolt
+    environment:
+      NEO4J_AUTH: ${NEO4J_USERNAME:-neo4j}/${NEO4J_PASSWORD:-loreengine}
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    networks:
+      - lore-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:7474"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Redis (캐시 레이어: API 응답 및 세션 관리) ──────────────
+  redis:
+    image: redis:7.2-alpine
+    container_name: lore-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - lore-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── Qdrant (Vector DB: RAG 임베딩 저장소) ───────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: lore-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"   # REST API
+      - "6334:6334"   # gRPC
+    volumes:
+      - qdrant-data:/qdrant/storage
+    networks:
+      - lore-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:6333/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Ollama (Local LLM: 추론 엔진) ───────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: lore-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      # K:/ 드라이브에 모델 저장 (1GB+ 대용량)
+      - type: bind
+        source: ${OLLAMA_MODEL_PATH:-K:/archives/lore-engine/ollama-models}
+        target: /root/.ollama
+    networks:
+      - lore-net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # ─── MCP Server (게임 메타 추천 AI 서버) ─────────────────────
+  mcp-server:
+    build:
+      context: ../packages/mcp-server
+      dockerfile: ../../docker/Dockerfile.mcp
+    container_name: lore-mcp
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ../.env
+    environment:
+      NODE_ENV: development
+      NEO4J_URI: bolt://neo4j:7687
+      REDIS_URL: redis://redis:6379
+      VECTOR_DB_URL: http://qdrant:6333
+      OLLAMA_BASE_URL: http://ollama:11434
+    volumes:
+      # node_modules는 컨테이너 내부 익명 볼륨 사용 (Windows I/O 회피)
+      - mcp-node-modules:/app/node_modules
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    networks:
+      - lore-net
+
+# ─── 볼륨 (named volumes) ─────────────────────────────────────
+volumes:
+  neo4j-data:
+  neo4j-logs:
+  redis-data:
+  qdrant-data:
+  mcp-node-modules:
+
+# ─── 네트워크 (내부 전용 bridge) ──────────────────────────────
+networks:
+  lore-net:
+    driver: bridge
+    internal: false   # 외부 Riot API 호출 필요시 false
