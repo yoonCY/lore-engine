@@ -2,22 +2,25 @@
   "name": "@lore-engine/data-pipeline",
   "version": "0.1.0",
   "private": true,
-  "description": "Riot API fetcher + community scraper",
+  "description": "Multi-game data pipeline (Riot + Nexon) with DDD architecture",
   "type": "module",
   "scripts": {
-    "fetch:riot": "tsx src/riot/fetch.ts",
+    "test:nexon": "tsx src/test-nexon.ts",
+    "test:fconline": "tsx src/test-fconline.ts",
+    "test:tfd": "tsx src/test-tfd.ts",
     "crawl:inven": "tsx src/scrapers/inven.ts",
     "import:neo4j": "tsx src/importers/neo4j.ts",
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
     "axios": "^1.6.0",
-    "playwright": "^1.40.0",
-    "neo4j-driver": "^5.0.0"
+    "neo4j-driver": "^5.0.0",
+    "playwright": "^1.40.0"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
+    "dotenv": "^17.4.1",
     "tsx": "^4.0.0",
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.0.0"
   }
 }

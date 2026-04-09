@@ -105,6 +105,8 @@ export class StaticDataSyncService {
           SET i.name = $name,
               i.plaintext = $plaintext,
               i.gold = $gold,
+              i.depth = $depth,
+              i.tags = $tags,
               i.version = $version,
               i.updatedAt = datetime()
         `, {
@@ -112,6 +114,8 @@ export class StaticDataSyncService {
           name: details.name,
           plaintext: details.plaintext || "",
           gold: details.gold ? details.gold.total : 0,
+          depth: details.depth || 1,
+          tags: details.tags || [],
           version: this.currentVersion
         });
         count++;
