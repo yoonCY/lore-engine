@@ -1,0 +1,67 @@
+# ═══════════════════════════════════════════════════════════════
+#  lore-engine Evaluation Harness (Promptfoo)
+#  목적: MCP 서버의 추천 정확도를 정량적으로 측정
+#  심판 모델: Gemini (OpenAI API Key 불필요)
+# ═══════════════════════════════════════════════════════════════
+
+description: "lore-engine MCP 챔피언 추천 정확도 평가"
+
+# ─── 평가 대상 Provider ─────────────────────────────────────────
+providers:
+  - id: "file://src/mcp-provider.ts"
+    label: "lore-engine MCP Server"
+
+# ─── 심판 LLM 설정 (Gemini 사용) ──────────────────────────────
+defaultTest:
+  options:
+    provider: "gemini:gemini-1.5-flash"
+
+# ─── 평가 케이스 (Golden Dataset) ─────────────────────────────
+tests:
+  # 케이스 1: 탑 챔피언 추천 - 탱커 상대 구성
+  - description: "탑 포지션 - 탱커 상대 챔피언 추천"
+    vars:
+      position: "top"
+      allies: []
+      enemies: ["Malphite", "Leona", "Nautilus"]
+    assert:
+      # 점수 기준: 탱커 상대에 효율적인 챔피언이 포함되어야 함
+      - type: llm-rubric
+        value: |
+          추천된 챔피언이 탱커를 상대하기에 적합한가?
+          (카이사, 피오라, 바루스, 바이, 직스 등 관통/지속 딜러가 권장됨)
+          0.0(부적합) ~ 1.0(완벽) 점수로 평가하라.
+        threshold: 0.7
+
+  # 케이스 2: 정글 픽 - 후반 캐리형
+  - description: "정글 포지션 - 후반 캐리 특화 챔피언"
+    vars:
+      position: "jungle"
+      allies: ["Jinx", "Lux"]
+      enemies: ["Ahri", "Ezreal"]
+    assert:
+      - type: llm-rubric
+        value: |
+          정글 포지션에서 후반 캐리가 가능한 챔피언이 추천되었는가?
+          (카직스, 신드라, 마스터이 등이 적합함)
+          0.0 ~ 1.0점으로 평가하라.
+        threshold: 0.6
+
+  # 케이스 3: 서포터 - CC 특화
+  - description: "서포터 포지션 - 강한 CC 보유"
+    vars:
+      position: "support"
+      allies: ["Jinx"]
+      enemies: ["Zed", "Yasuo", "Irelia"]
+    assert:
+      - type: llm-rubric
+        value: |
+          서포터로서 강한 CC 스킬을 보유하고 딜러를 보호할 수 있는 챔피언인가?
+          (레오나, 쓰레쉬, 노틸러스, 블리츠크랭크가 적합)
+          0.0 ~ 1.0점으로 평가하라.
+        threshold: 0.7
+
+# ─── 출력 옵션 ─────────────────────────────────────────────────
+outputPath: "./results/eval-latest.json"
+
+sharing: false
